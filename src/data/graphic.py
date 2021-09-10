@@ -1,28 +1,31 @@
 import time
+from enum import Enum
 
-import PIL
-import matplotlib.pyplot as plt
-import cv2 as cv
 import numpy
 import numpy as np
+import pyqtgraph as pg
+from pyqtgraph import PlotWidget, plot
 
 from src.control.function import Function
 
 
+class GraphicPrefab:
+    pen: pg.mkPen(color=(0, 0, 0))
+
+    @classmethod
+    def prefab_simple(cls):
+        cls.pen = pg.mkPen(color=(0, 0, 0), width=1)
+        return cls
+
+
 class Graphic:
-    _func: Function
 
-    data: numpy.ndarray
+    instance: pg.PlotWidget
+    func: Function
 
-    def __init__(self, func: Function):
-        self._func = func
-        fig = plt.figure()
+    def __init__(self, plot_widget: pg.PlotWidget):
+        self.instance = plot_widget
 
-        plt.plot(self._func.data)
-        plt.show()
+    def build(self, func: Function, prefab: GraphicPrefab):
+        self.instance.getPlotItem().plot(func.data, pen=prefab.pen)
 
-        nparr = np.fromstring(fig.canvas.tostring_rgb(), np.uint8).reshape(
-            fig.canvas.get_width_height()[1], fig.canvas.get_width_height()[0], 3
-        )
-        img = cv.cvtColor(nparr.astype(np.uint8), cv.COLOR_BGR2RGB)
-        self.data = img
