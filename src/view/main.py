@@ -1,158 +1,180 @@
-import time
+import datetime
+import sys
 
 from PyQt5 import QtWidgets, QtCore
-import sys
-import datetime
-from PyQt5.QtGui import QIcon, QPixmap, QImage
-from PyQt5.QtCore import QSize, QRect, QThread, pyqtSignal
-import pyqtgraph as pg
-from pyqtgraph import PlotWidget, plot
-from PyQt5.QtWidgets import (QGridLayout,
-                             QPushButton,
+from PyQt5.QtCore import QSize, QObject, pyqtSignal, Qt
+from PyQt5.QtWidgets import (QPushButton,
                              QLabel,
                              QWidget,
-                             QScrollArea,
-                             QInputDialog,
-                             QLineEdit,
-                             QFileDialog,
                              QVBoxLayout,
                              QHBoxLayout,
                              QTextEdit,
-                             QMessageBox,
-                             QFrame,
-                             QProgressBar,
-                             QScrollBar)
+                             QFrame, QSizePolicy)
 
 from src.control.function import *
 from src.data.graphic import *
+from src.view.own_widgets import *
+from tasks.task1_gui import (
+    WidgetPlotDraw1,
+)
+from tasks.task2_gui import (
+    WidgetPlotDrawRandom,
+)
 
 
-class WidgetControl(QWidget):
-    def __init__(self, size: QSize):
+class Communicate(QObject):
+
+    changeTab = pyqtSignal()
+
+
+class Route:
+    # widgets: list[QWidget]
+    index: int
+    communicator: Communicate
+
+    def __init__(self):
+        self.widgets = []
+        self.communicator = Communicate()
+        self.widgets.append(WidgetPlotDraw1())
+        self.widgets.append(WidgetPlotDrawRandom())
+        self.index = 0
+
+
+class RoutingWidget(QWidget, Route):
+    def __init__(self):
         super().__init__()
-        self.setFixedSize(size)
-        self.init_ui()
+        box = SelfVLayout()
+        self.setLayout(box)
+        tabs = QWidget()
+        tabs.setFixedWidth(400)
+        self.tabs_box = SelfHLayout(spacing=7)
+        tabs.setLayout(self.tabs_box)
+        box.addWidget(tabs)
+        self.tabs_b = {}
+        for i in range(self.widgets.__len__()):
+            nam = 'but_' + str(i)
+            self.tabs_b[nam] = QPushButton(str(i+1) + " Задание")
+            self.tabs_b[nam].setObjectName(str(i))
+            self.tabs_b[nam].clicked.connect(self.tab_clicked)
+            self.tabs_b[nam].setFixedHeight(30)
+            self.tabs_box.addWidget(self.tabs_b[nam])
 
-    def init_ui(self):
-        self.main_frame = QFrame(self)
-        self.main_frame.setObjectName("control_main_frame")
-        self.main_frame.setFixedSize(self.size())
-        self.box = QVBoxLayout(self.main_frame)
-        self.graph_build_b = QPushButton("построить графики")
-        self.parameter_a_input = QTextEdit()
-        # self.parameter_a_input.setInputMethodHints(Qt_InputMethodHint)
-        self.box.addWidget(self.graph_build_b)
-        self.box.addStretch(1)
+            self.tabs_b[nam].setStyleSheet('''QPushButton{background-color: rgb(205,235,235);
+            border-style: outset;
+            border-width: 0px;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            border-color: rgb(150,150,150);
+            font: 14px "Microsoft JhengHei UI";
+            color: rgb(60,60,60);}
+            QPushButton:hover{background-color: rgb(195,225,225);}
+            QPushButton:pressed{background-color: rgb(195,215,215);
+            }''')
+            self.tabs_b[nam].setFixedWidth(80)
+        self.tabs_box.setAlignment(Qt.AlignLeft)
+        nam = 'but_' + str(0)
+        self.tabs_b[nam].setStyleSheet('''QPushButton{background-color: rgb(105,155,155);
+            border-style: outset;
+            border-width: 0px;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            border-color: rgb(150,150,150);
+            font: 14px "Microsoft JhengHei UI";
+            color: rgb(60,60,60);}
+            QPushButton:hover{background-color: rgb(95,145,145);}
+            QPushButton:pressed{background-color: rgb(95,125,125);
+                    }''')
+        self.tabs_b[nam].setFixedWidth(100)
         self.init_style_sheet()
 
     def init_style_sheet(self):
-        # self.main_frame.setStyleSheet('''QWidget#control_main_frame{background-color: rgba(0,255,255,255);}''')
-        # self.button.setStyleSheet('''QWidget{background-color: rgba(0,0,255,255);}''')
-        # self.her.setStyleSheet('''QWidget{background-color: rgba(0,0,255,255);}''')
-        pass
+        print("tuttt")
+        self.setStyleSheet('''QWidget{background-color: rgb(0,0,0);}''')
+
+    def tab_clicked(self):
+        sender = self.sender()
+        nam = 'but_' + str(self.index)
+        self.tabs_b[nam].setStyleSheet('''QPushButton{background-color: rgb(205,235,235);
+            border-style: outset;
+            border-width: 0px;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            border-color: rgb(150,150,150);
+            font: 14px "Microsoft JhengHei UI";
+            color: rgb(60,60,60);}
+            QPushButton:hover{background-color: rgb(195,225,225);}
+            QPushButton:pressed{background-color: rgb(195,215,215);
+            }''')
+        self.tabs_b[nam].setFixedWidth(80)
+        self.index = int(sender.objectName())
+        nam = 'but_' + str(self.index )
+        self.tabs_b[nam].setStyleSheet('''QPushButton{background-color: rgb(105,155,155);
+            border-style: outset;
+            border-width: 0px;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            border-color: rgb(150,150,150);
+            font: 14px "Microsoft JhengHei UI";
+            color: rgb(60,60,60);}
+            QPushButton:hover{background-color: rgb(95,145,145);}
+            QPushButton:pressed{background-color: rgb(95,125,125);
+            }''')
+        self.tabs_b[nam].setFixedWidth(100)
+        self.communicator.changeTab.emit()
 
 
-class WidgetPlots(QWidget):
-    def __init__(self, size: QSize):
-        super().__init__()
-        self.setFixedSize(size)
-        self.init_ui()
-
-    def init_ui(self):
-        self.main_frame = QFrame(self)
-        print(self.size())
-        self.main_frame.setFixedSize(self.size())
-        self.main_frame.setObjectName("plots")
-        self.vbox = QVBoxLayout(self)
-        self.hbox1 = QHBoxLayout()
-        self.hbox2 = QHBoxLayout()
-        self.vbox.addLayout(self.hbox1)
-        self.vbox.addLayout(self.hbox2)
-        self.plots = {}
-        self.l_u_plot = self.build_plot_item(frame_name='left_up_plot', plot_name='plot1', plot_title='первый график')
-        self.r_u_plot = self.build_plot_item(frame_name='right_up_plot', plot_name='plot2', plot_title='второй график')
-        self.r_d_plot = self.build_plot_item(frame_name='right_down_plot', plot_name='plot3', plot_title='четвертый график')
-        self.l_d_plot = self.build_plot_item(frame_name='left_down_plot', plot_name='plot4', plot_title='третий график')
-        self.hbox1.addWidget(self.l_u_plot)
-        self.hbox1.addWidget(self.r_u_plot)
-        self.hbox2.addWidget(self.r_d_plot)
-        self.hbox2.addWidget(self.l_d_plot)
-
-        self.init_style_sheet()
-
-    def init_style_sheet(self):
-        self.main_frame.setStyleSheet('''QWidget#plots{background-color: rgba(240,240,240,255); padding: 0px;}''')
-        # self.plot1.setStyleSheet('''QWidget#plot{background-color: rgba(240,240,210,255);}''')
-        pass
-
-    def build_plot_item(self, **kwargs) -> QWidget:
-        main_frame = QFrame()
-        main_frame.setObjectName(kwargs['frame_name'])
-        vbox = QVBoxLayout(main_frame)
-        self.plots[kwargs['plot_name']] = pg.PlotWidget()
-        self.plots[kwargs['plot_name']].setBackground('w')
-        self.plots[kwargs['plot_name']].setObjectName(kwargs['plot_name'])
-        title = QLabel(kwargs['plot_title'])
-        vbox.addWidget(self.plots[kwargs['plot_name']], stretch=9)
-        vbox.addWidget(title, stretch=1)
-        return main_frame
-
-
-class MainWindow(QtWidgets.QMainWindow):
+class MainWindow(QWidget):
 
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle(str(datetime.datetime.now()))
-        self.init_ui()
-        self.init_style_sheet()
-        # self.test()
-
-    def init_ui(self):
         self.setFixedWidth(1280)
         self.setFixedHeight(720)
-        print(self.size())
+        self.route = RoutingWidget()
+        self.init_ui()
+        self.init_style_sheet()
 
-        self.main_frame = QFrame(self)
-        self.main_frame.setObjectName("main_main_frame")
-        self.main_frame.setGeometry(0, 0, self.width(), self.height())
-        self.main_h_box = QHBoxLayout(self.main_frame)
-        self.view_graphics = WidgetPlots(QSize(self.width() / 5 * 4 - 20, self.height() - 20))
-        self.view_control = WidgetControl(QSize(self.width() / 5 * 1 - 20, self.height() - 20))
-        self.view_control.graph_build_b.clicked.connect(self.test)
-        self.main_h_box.addWidget(self.view_control, stretch=1)
-        self.main_h_box.addWidget(self.view_graphics, stretch=4)
-        print(self.view_graphics.size())
+    def init_ui(self):
+        self.route.communicator.changeTab.connect(self.changeTab)
+        self.main_v_box = SelfVLayout(margin=Vector4().symmetric(10, 0))
+        self.setLayout(self.main_v_box)
+        self.route.setFixedHeight(35)
+        self.main_widget = self.route.widgets[self.route.index]
+        self.main_widget_copy = self.main_widget
+        self.main_v_box.addWidget(self.route)
+        self.main_v_box.addWidget(self.main_widget)
 
     def init_style_sheet(self):
-        self.main_frame.setStyleSheet('''QWidget#main_main_frame{
-                background-color:rgba(220,220,220,255)}''')
-        self.view_graphics.setStyleSheet('''border: 1px; padding: 0px;
-        background-color:rgba(255,255,255,255)''')
+        self.route.setStyleSheet('''border-bottom: 1px solid rgba(0,0,0,50);''')
         self.setStyleSheet('''QWidget#plot{background-color: rgba(0,255,255,255);}''')
 
-    def test(self):
-        sender = self.sender()
+    def changeTab(self):
+        print('tut')
+        # self.main_v_box.addWidget(self.route)
+        self.main_v_box.removeWidget(self.main_widget)
+        self.main_widget.setParent(None)
+        self.main_widget.destroy()
+        self.main_widget = self.route.widgets[self.route.index]
+        self.main_v_box.addWidget(self.main_widget)
 
-        a, b, n = 0.4, 1, 500
-        func = TrendExpFunc()
-        func.build(n, a, b)
-        Graphic(self.view_graphics.plots["plot1"]).build(func=func, prefab=GraphicPrefab.prefab_simple())
 
-        a, b, n = -0.1, 5, 500
-        func = TrendExpFunc()
-        func.build(n, a, b)
-        Graphic(self.view_graphics.plots["plot2"]).build(func=func, prefab=GraphicPrefab.prefab_simple())
+# class MainWindow2(QWidget):
+#     def __init__(self):
+#         super(MainWindow2, self).__init__()
+#         self.lay = SelfVLayout()
+#         self.setLayout(self.lay)
+#         self.wid1 = QTextEdit("as")
+#         self.wid2 = QPushButton("Press")
+#         self.lay.addWidget(self.wid1)
+#         self.lay.addWidget(self.wid2)
+#         self.wid2.clicked.connect(self.switch)
+#
+#     def switch(self):
+#         self.lay.removeWidget(self.wid2)
+#         self.wid2.setParent(None)
+#         self.wid2.destroy()
 
-        a, b, n = 5, 1, 500
-        func = TrendLinFunc()
-        func.build(n, a, b)
-        Graphic(self.view_graphics.plots["plot3"]).build(func=func, prefab=GraphicPrefab.prefab_simple())
-
-        a, b, n = -10, 10, 500
-        func = TrendLinFunc()
-        func.build(n, a, b)
-        Graphic(self.view_graphics.plots["plot4"]).build(func=func, prefab=GraphicPrefab.prefab_simple())
 
 
 app = QtCore.QCoreApplication.instance()

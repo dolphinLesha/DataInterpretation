@@ -14,6 +14,11 @@ class GraphicPrefab:
 
     @classmethod
     def prefab_simple(cls):
+        cls.pen = pg.mkPen(color=(0, 0, 0), width=2)
+        return cls
+
+    @classmethod
+    def prefab_simple_thin(cls):
         cls.pen = pg.mkPen(color=(0, 0, 0), width=1)
         return cls
 
@@ -27,5 +32,7 @@ class Graphic:
         self.instance = plot_widget
 
     def build(self, func: Function, prefab: GraphicPrefab):
+        self.instance.getPlotItem().clear()
         self.instance.getPlotItem().plot(func.data, pen=prefab.pen)
+        self.instance.getPlotItem().showGrid(x=True, y=True, alpha=0.2)
 
