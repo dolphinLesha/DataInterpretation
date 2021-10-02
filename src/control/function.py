@@ -9,45 +9,49 @@ class Function:
 
     data = []
 
-
-class FunctionMixin:
-
     @abstractmethod
     def build(self, **kwargs):
-        pass
+            pass
 
 
-class TrendLinFunc(Function, FunctionMixin):
+# class FunctionMixin:
+#
+#     @abstractmethod
+#     def build(self, **kwargs):
+#         pass
 
-    def build(self, n: int, a: float, b: float, **kwargs):
+
+class TrendLinFunc(Function):
+
+    def build(self, **kwargs):
         self.data = []
-        for i in range(n):
-            self.data.append(a * i + b)
+        for i in range(kwargs['n']):
+            self.data.append(kwargs['a'] * i + kwargs['b'])
 
 
-class TrendExpFunc(Function, FunctionMixin):
+class TrendExpFunc(Function):
 
-    def build(self, n: int, a: float, b: float, **kwargs):
+    def build(self, **kwargs):
         self.data = []
-        for i in range(n):
-            self.data.append(np.exp(-a * i) * b)
+        for i in range(kwargs['n']):
+            self.data.append(np.exp(-kwargs['a'] * i) * kwargs['b'])
 
 
-class RandomFunc(Function, FunctionMixin):
+class RandomFunc(Function):
 
-    def build(self, n: int, min_p: float, max_p: float, **kwargs):
+    def build(self, **kwargs):
         self.data = []
-        for i in range(n):
-            self.data.append(random.random() * (max_p - min_p) + min_p)
+        for i in range(kwargs['n']):
+            self.data.append(random.random() * (kwargs['max_p'] - kwargs['min_p']) + kwargs['min_p'])
 
 
-class RandomOwnFunc(Function, FunctionMixin):
+class RandomOwnFunc(Function):
 
-    def build(self, n: int, min_p: float, max_p: float, precision: int = 1000, **kwargs):
+    def build(self, **kwargs):
         self.data = []
         sec = round(time.time() * 1000)
-        proc = (sec) % precision
-        for i in range(n):
+        proc = (sec) % kwargs['precision']
+        for i in range(kwargs['n']):
             # proc = (pi+sec) % precision
             if 0 <= proc % 10 < 3:
                 a = (proc * 9312) ** 2 / 100
@@ -62,5 +66,51 @@ class RandomOwnFunc(Function, FunctionMixin):
                 a = b
             stri = str(a)[0:6].replace('.', '')
             a = int(stri)
-            proc = int(a % precision)
-            self.data.append((proc / precision) * (max_p - min_p) + min_p)
+            proc = int(a % kwargs['precision'])
+            self.data.append((proc / kwargs['precision']) * (kwargs['max_p'] - kwargs['min_p']) + kwargs['min_p'])
+
+
+class AddFunction(Function):
+
+    def build(self, **kwargs):
+        self.data=[]
+        funcs = kwargs['funcs']
+
+        max_index = 0
+        max_i = funcs[0].data.__len__()
+        for i in range(1, funcs.__len__()):
+            if funcs[i].data.__len__() > max_i:
+                max_i = funcs[i].data.__len__()
+                max_index = i
+
+        data1 = funcs[max_index].data
+        for e in range(data1.__len__()):
+            for i in range(0, funcs.__len__()):
+                if i == max_index:
+                    continue
+                if funcs[i].data.__len__() > e:
+                    data1[e] = data1[e] + funcs[i].data[e]
+            self.data.append(data1[e])
+
+
+class MultiplyFunction(Function):
+
+    def build(self, **kwargs):
+        self.data = []
+        funcs = kwargs['funcs']
+
+        max_index = 0
+        max_i = funcs[0].data.__len__()
+        for i in range(1, funcs.__len__()):
+            if funcs[i].data.__len__() > max_i:
+                max_i = funcs[i].data.__len__()
+                max_index = i
+
+        data1 = funcs[max_index].data
+        for e in range(data1.__len__()):
+            for i in range(0, funcs.__len__()):
+                if i == max_index:
+                    continue
+                if funcs[i].data.__len__() > e:
+                    data1[e] = data1[e] * funcs[i].data[e]
+            self.data.append(data1[e])

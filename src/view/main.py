@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (QPushButton,
 from src.control.function import *
 from src.data.graphic import *
 from src.view.own_widgets import *
+from src.view.tasks.task3_gui import WidgetStatistics
 from tasks.task1_gui import (
     WidgetPlotDraw1,
 )
@@ -37,6 +38,7 @@ class Route:
         self.communicator = Communicate()
         self.widgets.append(WidgetPlotDraw1())
         self.widgets.append(WidgetPlotDrawRandom())
+        self.widgets.append(WidgetStatistics())
         self.index = 0
 
 
@@ -130,7 +132,7 @@ class MainWindow(QWidget):
 
         self.setWindowTitle(str(datetime.datetime.now()))
         self.setFixedWidth(1280)
-        self.setFixedHeight(720)
+        # self.setFixedHeight(900)
         self.route = RoutingWidget()
         self.init_ui()
         self.init_style_sheet()
@@ -174,7 +176,6 @@ class MainWindow(QWidget):
 #         self.lay.removeWidget(self.wid2)
 #         self.wid2.setParent(None)
 #         self.wid2.destroy()
-
 
 
 app = QtCore.QCoreApplication.instance()
