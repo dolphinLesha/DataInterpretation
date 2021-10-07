@@ -7,6 +7,7 @@ import numpy as np
 
 class Function:
 
+    data_x = []
     data = []
 
     @abstractmethod
@@ -25,30 +26,47 @@ class TrendLinFunc(Function):
 
     def build(self, **kwargs):
         self.data = []
+        self.data_x = []
         for i in range(kwargs['n']):
             self.data.append(kwargs['a'] * i + kwargs['b'])
+            self.data_x.append(i)
 
 
 class TrendExpFunc(Function):
 
     def build(self, **kwargs):
         self.data = []
+        self.data_x = []
         for i in range(kwargs['n']):
             self.data.append(np.exp(-kwargs['a'] * i) * kwargs['b'])
+            self.data_x.append(i)
+
+
+class SinusFunc(Function):
+
+    def build(self, **kwargs):
+        self.data = []
+        self.data_x = []
+        for i in range(kwargs['n']):
+            self.data.append()
+            self.data_x.append(i)
 
 
 class RandomFunc(Function):
 
     def build(self, **kwargs):
         self.data = []
+        self.data_x = []
         for i in range(kwargs['n']):
-            self.data.append(random.random() * (kwargs['max_p'] - kwargs['min_p']) + kwargs['min_p'])
+            self.data.append(np.random.random() * (kwargs['max_p'] - kwargs['min_p']) + kwargs['min_p'])
+            self.data_x.append(i)
 
 
 class RandomOwnFunc(Function):
 
     def build(self, **kwargs):
         self.data = []
+        self.data_x = []
         sec = round(time.time() * 1000)
         proc = (sec) % kwargs['precision']
         for i in range(kwargs['n']):
@@ -68,12 +86,14 @@ class RandomOwnFunc(Function):
             a = int(stri)
             proc = int(a % kwargs['precision'])
             self.data.append((proc / kwargs['precision']) * (kwargs['max_p'] - kwargs['min_p']) + kwargs['min_p'])
+            self.data_x.append(i)
 
 
 class AddFunction(Function):
 
     def build(self, **kwargs):
         self.data=[]
+        self.data_x = []
         funcs = kwargs['funcs']
 
         max_index = 0
@@ -91,12 +111,14 @@ class AddFunction(Function):
                 if funcs[i].data.__len__() > e:
                     data1[e] = data1[e] + funcs[i].data[e]
             self.data.append(data1[e])
+            self.data_x.append(e)
 
 
 class MultiplyFunction(Function):
 
     def build(self, **kwargs):
         self.data = []
+        self.data_x = []
         funcs = kwargs['funcs']
 
         max_index = 0
@@ -114,3 +136,6 @@ class MultiplyFunction(Function):
                 if funcs[i].data.__len__() > e:
                     data1[e] = data1[e] * funcs[i].data[e]
             self.data.append(data1[e])
+            self.data_x.append(e)
+
+

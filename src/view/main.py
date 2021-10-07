@@ -15,6 +15,7 @@ from src.control.function import *
 from src.data.graphic import *
 from src.view.own_widgets import *
 from src.view.tasks.task3_gui import WidgetStatistics
+from src.view.tasks.task4_gui import WidgetTask4
 from tasks.task1_gui import (
     WidgetPlotDraw1,
 )
@@ -39,6 +40,7 @@ class Route:
         self.widgets.append(WidgetPlotDraw1())
         self.widgets.append(WidgetPlotDrawRandom())
         self.widgets.append(WidgetStatistics())
+        self.widgets.append(WidgetTask4())
         self.index = 0
 
 
@@ -131,7 +133,7 @@ class MainWindow(QWidget):
         super().__init__()
 
         self.setWindowTitle(str(datetime.datetime.now()))
-        self.setFixedWidth(1280)
+        # self.setFixedWidth(1280)
         # self.setFixedHeight(900)
         self.route = RoutingWidget()
         self.init_ui()

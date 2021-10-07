@@ -29,3 +29,10 @@ class DefaultTask3:
     def __init__(self):
         self.m = 100
         self.e = 10
+
+
+class DefaultTask4:
+    bars: int = 10
+
+    def __init__(self):
+        self.m = 100
