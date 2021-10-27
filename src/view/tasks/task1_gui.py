@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (QPushButton,
 from src.control.function import *
 from src.data.graphic import *
 from src.view.own_widgets import *
+from src.view.view_settings import ViewSettings
 
 
 class WidgetPlotDraw1(QWidget):
@@ -24,11 +25,18 @@ class WidgetPlotDraw1(QWidget):
         # self.init_style_sheet()
 
     def init_ui(self):
-        self.main_h_box = SelfHLayout()
-        self.setLayout(self.main_h_box)
+        vbox = SelfVLayout()
+        self.setLayout(vbox)
+        title = QLabel("Построение 4 графиков")
+        title.setFixedHeight(30)
+        widget = QWidget()
+        vbox.addWidget(title)
+        vbox.addWidget(widget)
+        self.main_h_box = SelfHLayout(spacing=10)
+        widget.setLayout(self.main_h_box)
         self.view_graphics = WidgetPlots()
         self.view_control = WidgetControl()
-        self.view_control.setFixedWidth(200)
+        self.view_control.setFixedWidth(ViewSettings.control_width)
         self.view_control.graph_build_b.clicked.connect(self.test)
         self.main_h_box.addWidget(self.view_control)
         self.main_h_box.addWidget(self.view_graphics)
@@ -40,24 +48,20 @@ class WidgetPlotDraw1(QWidget):
     def test(self):
         sender = self.sender()
 
-        a, b, n = 0.4, 1, 500
-        func = TrendExpFunc()
-        func.build(n, a, b)
+        func = self.view_control.graph_and_settings1.get_function()
+        func.build(**self.view_control.graph_and_settings1.get_settings())
         Graphic(self.view_graphics.plots["plot1"]).build(func=func, prefab=GraphicPrefab.prefab_simple())
 
-        a, b, n = -0.1, 5, 500
-        func = TrendExpFunc()
-        func.build(n, a, b)
+        func = self.view_control.graph_and_settings2.get_function()
+        func.build(**self.view_control.graph_and_settings2.get_settings())
         Graphic(self.view_graphics.plots["plot2"]).build(func=func, prefab=GraphicPrefab.prefab_simple())
 
-        a, b, n = 5, 1, 500
-        func = TrendLinFunc()
-        func.build(n, a, b)
+        func = self.view_control.graph_and_settings3.get_function()
+        func.build(**self.view_control.graph_and_settings3.get_settings())
         Graphic(self.view_graphics.plots["plot3"]).build(func=func, prefab=GraphicPrefab.prefab_simple())
 
-        a, b, n = -10, 10, 500
-        func = TrendLinFunc()
-        func.build(n, a, b)
+        func = self.view_control.graph_and_settings4.get_function()
+        func.build(**self.view_control.graph_and_settings4.get_settings())
         Graphic(self.view_graphics.plots["plot4"]).build(func=func, prefab=GraphicPrefab.prefab_simple())
 
 
@@ -71,9 +75,43 @@ class WidgetControl(QWidget):
     def init_ui(self):
         self.box = SelfVLayout()
         self.setLayout(self.box)
-        self.graph_build_b = QPushButton("построить графики")
-        self.parameter_a_input = QTextEdit()
+        self.graph_build_b = SelfButton("построить графики")
         self.box.addWidget(self.graph_build_b)
+
+        '''group box for values of 1 graph'''
+        group1 = QGroupBox("График 1")
+        self.box_group1 = SelfVLayout(spacing=5)
+        group1.setLayout(self.box_group1)
+        self.graph_and_settings1 = SelfFuncSettingsWidget()
+        self.box_group1.addWidget(self.graph_and_settings1)
+        self.box.addWidget(group1)
+
+        '''group box for values of 1 graph'''
+        group2 = QGroupBox("График 2")
+        self.box_group2 = SelfVLayout(spacing=5)
+        group2.setLayout(self.box_group2)
+        self.graph_and_settings2 = SelfFuncSettingsWidget()
+        self.box_group2.addWidget(self.graph_and_settings2)
+        self.box.addWidget(group2)
+
+        '''group box for values of 1 graph'''
+        group3 = QGroupBox("График 3")
+        self.box_group3 = SelfVLayout(spacing=5)
+        group3.setLayout(self.box_group3)
+        self.graph_and_settings3 = SelfFuncSettingsWidget()
+        self.box_group3.addWidget(self.graph_and_settings3)
+        self.box.addWidget(group3)
+
+        '''group box for values of 1 graph'''
+        group4 = QGroupBox("График 4")
+        self.box_group4 = SelfVLayout(spacing=5)
+        group4.setLayout(self.box_group4)
+        self.graph_and_settings4 = SelfFuncSettingsWidget()
+        self.box_group4.addWidget(self.graph_and_settings4)
+        self.box.addWidget(group4)
+
+
+
         self.box.addStretch(1)
         self.init_style_sheet()
 
@@ -99,13 +137,13 @@ class WidgetPlots(QWidget):
         self.plots = {}
         self.l_u_plot = self.build_plot_item(frame_name='left_up_plot', plot_name='plot1', plot_title='первый график')
         self.r_u_plot = self.build_plot_item(frame_name='right_up_plot', plot_name='plot2', plot_title='второй график')
-        self.r_d_plot = self.build_plot_item(frame_name='right_down_plot', plot_name='plot3',
+        self.r_d_plot = self.build_plot_item(frame_name='right_down_plot', plot_name='plot4',
                                              plot_title='четвертый график')
-        self.l_d_plot = self.build_plot_item(frame_name='left_down_plot', plot_name='plot4', plot_title='третий график')
+        self.l_d_plot = self.build_plot_item(frame_name='left_down_plot', plot_name='plot3', plot_title='третий график')
         self.hbox1.addWidget(self.l_u_plot)
         self.hbox1.addWidget(self.r_u_plot)
-        self.hbox2.addWidget(self.r_d_plot)
         self.hbox2.addWidget(self.l_d_plot)
+        self.hbox2.addWidget(self.r_d_plot)
 
         self.init_style_sheet()
 

@@ -15,6 +15,7 @@ from src.control.function import *
 from src.data.graphic import *
 from src.data.tasks.default_values import DefaultTask2
 from src.view.own_widgets import *
+from src.view.view_settings import ViewSettings
 
 
 class WidgetPlotDrawRandom(QWidget):
@@ -36,7 +37,7 @@ class WidgetPlotDrawRandom(QWidget):
         widget.setLayout(self.main_h_box)
         self.view_graphics = WidgetPlots()
         self.view_control = WidgetControl()
-        self.view_control.setFixedWidth(200)
+        self.view_control.setFixedWidth(ViewSettings.control_width)
         self.view_control.graph_build_b.clicked.connect(self.test)
         self.main_h_box.addWidget(self.view_control)
         self.main_h_box.addWidget(self.view_graphics)
@@ -48,36 +49,22 @@ class WidgetPlotDrawRandom(QWidget):
 
     def test(self):
         sender = self.sender()
-        n = self.view_control.parameter_n_input.get_value_as_int()
-        if n is None:
-            n = DefaultTask2.n
-        min_p = self.view_control.parameter_min_input.get_value_as_int()
-        if min_p is None:
-            min_p = DefaultTask2.min_p
-        max_p = self.view_control.parameter_max_input.get_value_as_int()
-        if max_p is None:
-            max_p = DefaultTask2.max_p
-        print(min_p)
-        print(max_p)
-        func = RandomFunc()
-        func.build(n, min_p, max_p)
-        Graphic(self.view_graphics.plots["plot1"]).build(func=func, prefab=GraphicPrefab.prefab_simple_thin())
 
-        n = self.view_control.parameter_n_input2.get_value_as_int()
-        if n is None:
-            n = DefaultTask2.n
-        min_p = self.view_control.parameter_min_input2.get_value_as_int()
-        if min_p is None:
-            min_p = DefaultTask2.min_p
-        max_p = self.view_control.parameter_max_input2.get_value_as_int()
-        if max_p is None:
-            max_p = DefaultTask2.max_p
-        precision = self.view_control.parameter_precision_input2.get_value_as_int()
-        if precision is None:
-            precision = DefaultTask2.precision
-        func = RandomOwnFunc()
-        func.build(n, min_p, max_p, precision=10 ** precision)
-        Graphic(self.view_graphics.plots["plot2"]).build(func=func, prefab=GraphicPrefab.prefab_simple_thin())
+        func1 = self.view_control.graph_and_settings1.get_function()
+        func1.build(**self.view_control.graph_and_settings1.get_settings())
+        Graphic(self.view_graphics.plots["plot1"]).build(func=func1, prefab=GraphicPrefab.prefab_simple_thin())
+
+        func2 = self.view_control.graph_and_settings2.get_function()
+        func2.build(**self.view_control.graph_and_settings2.get_settings())
+        Graphic(self.view_graphics.plots["plot2"]).build(func=func2, prefab=GraphicPrefab.prefab_simple_thin())
+
+        func3 = AddFunction()
+        func3.build(**{'funcs': [func1, func2]})
+        Graphic(self.view_graphics.plots["plot3"]).build(func=func3, prefab=GraphicPrefab.prefab_simple_thin())
+
+        func4 = MultiplyFunction()
+        func4.build(**{'funcs': [func1, func2]})
+        Graphic(self.view_graphics.plots["plot4"]).build(func=func4, prefab=GraphicPrefab.prefab_simple_thin())
 
 
 class WidgetControl(QWidget):
@@ -95,28 +82,18 @@ class WidgetControl(QWidget):
         self.graph_build_b = SelfButton("построить графики")
 
         '''group box for values of 1 graph'''
-        group1 = QGroupBox("Параметры 1 графика")
+        group1 = QGroupBox("график рандома")
         box_group1 = SelfVLayout(spacing=5)
         group1.setLayout(box_group1)
-        self.parameter_n_input = SelfTitledLineEdit(title="Value N", hint_text="500")
-        self.parameter_min_input = SelfTitledLineEdit(title="Value Min", hint_text="-1")
-        self.parameter_max_input = SelfTitledLineEdit(title="Value Max", hint_text="1")
-        box_group1.addWidget(self.parameter_n_input)
-        box_group1.addWidget(self.parameter_min_input)
-        box_group1.addWidget(self.parameter_max_input)
+        self.graph_and_settings1 = SelfFuncSettingsWidget()
+        box_group1.addWidget(self.graph_and_settings1)
 
         '''group box for values of 2 graph'''
-        group2 = QGroupBox("Параметры 2 графика")
+        group2 = QGroupBox("график для наложения")
         box_group2 = SelfVLayout(spacing=5)
         group2.setLayout(box_group2)
-        self.parameter_n_input2 = SelfTitledLineEdit(title="Value N", hint_text="500")
-        self.parameter_min_input2 = SelfTitledLineEdit(title="Value Min", hint_text="-1")
-        self.parameter_max_input2 = SelfTitledLineEdit(title="Value Max", hint_text="1")
-        self.parameter_precision_input2 = SelfTitledLineEdit(title="Value Precision", hint_text="5")
-        box_group2.addWidget(self.parameter_n_input2)
-        box_group2.addWidget(self.parameter_min_input2)
-        box_group2.addWidget(self.parameter_max_input2)
-        box_group2.addWidget(self.parameter_precision_input2)
+        self.graph_and_settings2 = SelfFuncSettingsWidget()
+        box_group2.addWidget(self.graph_and_settings2)
 
         self.box.addWidget(self.graph_build_b)
         self.box.addWidget(group1)
@@ -147,8 +124,12 @@ class WidgetPlots(QWidget):
         self.plots = {}
         self.l_u_plot = self.build_plot_item(frame_name='left_up_plot', plot_name='plot1', plot_title='первый график')
         self.r_u_plot = self.build_plot_item(frame_name='right_up_plot', plot_name='plot2', plot_title='второй график')
+        self.l_d_plot = self.build_plot_item(frame_name='left_down_plot', plot_name='plot3', plot_title='+ график')
+        self.r_d_plot = self.build_plot_item(frame_name='right_down_plot', plot_name='plot4', plot_title='* график')
         self.hbox1.addWidget(self.l_u_plot)
         self.hbox1.addWidget(self.r_u_plot)
+        self.hbox2.addWidget(self.l_d_plot)
+        self.hbox2.addWidget(self.r_d_plot)
 
         self.init_style_sheet()
 
