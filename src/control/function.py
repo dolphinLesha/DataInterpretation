@@ -5,21 +5,95 @@ from abc import abstractmethod
 import numpy as np
 
 
+
 class Function:
 
     data_x = []
     data = []
 
+    def __init__(self, **kwargs):
+        if data := kwargs.pop('data', None):
+            self.data = data
+        if data_x := kwargs.pop('data_x', None):
+            self.data_x = data_x
+
     @abstractmethod
     def build(self, **kwargs):
             pass
 
+    def shift(self, **kwargs) -> 'Function':
+        C = kwargs['C']
+        data_new = []
+        data_x_new = []
+        for i in range(self.data.__len__()):
+            data_new.append(self.data[i] + C)
+            data_x_new.append(self.data_x[i])
+        return Function(data=data_new, data_x=data_x_new)
 
-# class FunctionMixin:
-#
-#     @abstractmethod
-#     def build(self, **kwargs):
-#         pass
+    def spikes(self, **kwargs) -> 'Function':
+        n = kwargs['n']
+        pos = kwargs.pop('pos', None)
+        if pos is None:
+            pos = []
+            # for i in range(n):
+            #     pos[i] = np.random.randint(0, self.data.__len__())
+            pos = random.sample(range(len(self.data)), n)
+        sign = kwargs.pop('sign', None)
+        if sign is None:
+            sign = []
+            for i in range(n):
+                m = np.random.randint(-1, 1)
+                sign.append(m if m == -1 else 1)
+
+        return self._spikes(n, pos, sign, kwargs['val'], kwargs['d'])
+
+    def _spikes(self, n: int, pos: list[int], sign: list[int], val: int, d: int) -> 'Function':
+        data_new = list(self.data)
+        data_x_new = list(self.data_x)
+        for i in range(n):
+            data_new[pos[i]] = np.random.random() * (val + d - (val-d)) + (val-d) * sign[i]
+        return Function(data=data_new, data_x=data_x_new)
+
+    def return_mo(self, **kwargs):
+        data_new = []
+        data_x_new = []
+        avg = np.average(self.data)
+        return self.shift(**{'C': -avg})
+
+    # def anti_spikes(self, **kwargs):
+    #     data_new = []
+    #     data_x_new = []
+    #     q1 = np.quantile(self.data, 0.25)
+    #     q2 = np.quantile(self.data, 0.5)
+    #     q3 = np.quantile(self.data, 0.75)
+    #     q13 = q3-q1
+    #     q13 *= 3.0
+    #     q1s = q1 - q13
+    #     q3s = q3 + q13
+    #     data_new.append(self.data[0])
+    #     data_x_new.append(self.data_x[0])
+    #     # mn = np.mean(self.data)
+    #     for i in range(1, len(self.data)-1):
+    #         temp = 0.
+    #         if self.data[i] < q1s or self.data[i] > q3s:
+    #             # temp = (self.data[i-1] + self.data[i+1] + self.data[i-2] + self.data[i+2] + mn) / 5.0
+    #             temp = (self.data[i - 1] + self.data[i + 1]) / 2.0
+    #             # temp = mn
+    #         else:
+    #             temp = (self.data[i])
+    #         data_new.append(temp)
+    #         data_x_new.append(self.data_x[i])
+    #     data_new.append(self.data[len(self.data)-1])
+    #     data_x_new.append(self.data_x[len(self.data)-1])
+    #     return Function(data=data_new, data_x=data_x_new)
+
+    def anti_spikes(self, **kwargs):
+        data_new = self.data[:]
+        data_x_new = self.data_x[:]
+        for i in range(1, len(self.data)-1):
+            temp = (self.data[i - 1] + self.data[i + 1]) / 2.0 if abs(self.data[i]/self.data[i-1]) > 50 else self.data[i]
+            data_new[i] = temp
+        return Function(data=data_new, data_x=data_x_new)
 
 
 class TrendLinFunc(Function):
@@ -39,16 +113,6 @@ class TrendExpFunc(Function):
         self.data_x = []
         for i in range(kwargs['n']):
             self.data.append(np.exp(-kwargs['a'] * i) * kwargs['b'])
-            self.data_x.append(i)
-
-
-class SinusFunc(Function):
-
-    def build(self, **kwargs):
-        self.data = []
-        self.data_x = []
-        for i in range(kwargs['n']):
-            self.data.append()
             self.data_x.append(i)
 
 
@@ -139,3 +203,59 @@ class MultiplyFunction(Function):
             self.data_x.append(e)
 
 
+class HarmonicFunction(Function):
+
+    def build(self, **kwargs):
+        self.data = []
+        self.data_x = []
+        n = kwargs['n']
+        a1 = kwargs['a1']
+        f1 = kwargs['f1']
+        dt = kwargs['dt']
+        for i in range(n):
+            value = a1 * np.sin(2*np.pi*f1*i*dt)
+            self.data.append(value)
+            self.data_x.append(i*dt)
+
+
+class PolyHarmonicFunction(Function):
+
+    def build(self, **kwargs):
+        self.data = []
+        self.data_x = []
+        n = kwargs['n']
+        a1 = kwargs['a1']
+        f1 = kwargs['f1']
+        a2 = kwargs['a2']
+        f2 = kwargs['f2']
+        a3 = kwargs['a3']
+        f3 = kwargs['f3']
+        dt = kwargs['dt']
+        for i in range(n):
+            value1 = a1 * np.sin(2*np.pi*f1*i*dt)
+            value2 = a2 * np.sin(2*np.pi*f2*i*dt)
+            value3 = a3 * np.sin(2*np.pi*f3*i*dt)
+            self.data.append(value1+value2+value3)
+            self.data_x.append(i*dt)
+
+
+# class ShiftFunc(Function):
+#     def build(self, **kwargs):
+#         func: Function = kwargs['func']
+#         self.data = func.data
+#         self.data_x = func.data_x
+#         C = kwargs['C']
+#
+#         for i in range(self.data.__len__()):
+#             self.data[i] += C
+
+
+class SpikesFunc(Function):
+    def build(self, **kwargs):
+        func: Function = kwargs['func']
+        self.data = func.data
+        self.data_x = func.data_x
+        C = kwargs['C']
+
+        for i in range(self.data.__len__()):
+            self.data[i] += C

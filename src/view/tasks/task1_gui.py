@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (QPushButton,
 from src.control.function import *
 from src.data.graphic import *
 from src.view.own_widgets import *
+from src.view.view_settings import ViewSettings
 
 
 class WidgetPlotDraw1(QWidget):
@@ -24,11 +25,18 @@ class WidgetPlotDraw1(QWidget):
         # self.init_style_sheet()
 
     def init_ui(self):
-        self.main_h_box = SelfHLayout()
-        self.setLayout(self.main_h_box)
+        vbox = SelfVLayout()
+        self.setLayout(vbox)
+        title = QLabel("Построение 4 графиков")
+        title.setFixedHeight(30)
+        widget = QWidget()
+        vbox.addWidget(title)
+        vbox.addWidget(widget)
+        self.main_h_box = SelfHLayout(spacing=10)
+        widget.setLayout(self.main_h_box)
         self.view_graphics = WidgetPlots()
         self.view_control = WidgetControl()
-        self.view_control.setFixedWidth(200)
+        self.view_control.setFixedWidth(ViewSettings.control_width)
         self.view_control.graph_build_b.clicked.connect(self.test)
         self.main_h_box.addWidget(self.view_control)
         self.main_h_box.addWidget(self.view_graphics)

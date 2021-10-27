@@ -44,16 +44,6 @@ class Graphic:
 
 class FunctionVariants:
     def __init__(self):
-        self.variants = {'TrendLinFunc': TrendLinFunc(), 'TrendExpFunc': TrendExpFunc(), 'RandomFunc': RandomFunc(),
-                         'RandomOwnFunc': RandomOwnFunc()}
-
-
-# ## make interesting distribution of values
-# vals = np.hstack([np.random.normal(size=500), np.random.normal(size=260, loc=4)])
-#
-# ## compute standard histogram
-# y, x = np.histogram(vals, bins=np.linspace(-3, 10, 40))
-#
-# ## Using stepMode=True causes the plot to draw two lines for each sample.
-# ## notice that len(x) == len(y)+1
-# plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
+        self.variants = {'Прямая': TrendLinFunc(), 'Экспонента': TrendExpFunc(), 'Рандом': RandomFunc(),
+                         'Свой рандом': RandomOwnFunc(), 'Гармоника': HarmonicFunction(),
+                         'Полигармоника': PolyHarmonicFunction()}

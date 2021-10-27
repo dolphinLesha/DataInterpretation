@@ -16,6 +16,7 @@ from src.control.function import *
 from src.data.graphic import *
 from src.data.tasks.default_values import DefaultTask2
 from src.view.own_widgets import *
+from src.view.view_settings import ViewSettings
 
 
 class WidgetStatistics(QWidget):
@@ -37,7 +38,7 @@ class WidgetStatistics(QWidget):
         widget.setLayout(self.main_h_box)
         self.view_graphics = WidgetValues()
         self.view_control = WidgetControl()
-        self.view_control.setFixedWidth(200)
+        self.view_control.setFixedWidth(ViewSettings.control_width)
         self.view_control.graph_build_b.clicked.connect(self.build_graph)
         self.view_control.stats_build_b.clicked.connect(self.build_stats)
         self.main_h_box.addWidget(self.view_control)

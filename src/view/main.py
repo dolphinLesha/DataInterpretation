@@ -16,6 +16,8 @@ from src.data.graphic import *
 from src.view.own_widgets import *
 from src.view.tasks.task3_gui import WidgetStatistics
 from src.view.tasks.task4_gui import WidgetTask4
+from src.view.tasks.task5_gui import WidgetTask5
+from src.view.view_settings import ViewSettings
 from tasks.task1_gui import (
     WidgetPlotDraw1,
 )
@@ -41,6 +43,7 @@ class Route:
         self.widgets.append(WidgetPlotDrawRandom())
         self.widgets.append(WidgetStatistics())
         self.widgets.append(WidgetTask4())
+        self.widgets.append(WidgetTask5())
         self.index = 0
 
 
@@ -50,7 +53,7 @@ class RoutingWidget(QWidget, Route):
         box = SelfVLayout()
         self.setLayout(box)
         tabs = QWidget()
-        tabs.setFixedWidth(400)
+        tabs.setFixedWidth(800)
         self.tabs_box = SelfHLayout(spacing=7)
         tabs.setLayout(self.tabs_box)
         box.addWidget(tabs)
@@ -63,31 +66,11 @@ class RoutingWidget(QWidget, Route):
             self.tabs_b[nam].setFixedHeight(30)
             self.tabs_box.addWidget(self.tabs_b[nam])
 
-            self.tabs_b[nam].setStyleSheet('''QPushButton{background-color: rgb(205,235,235);
-            border-style: outset;
-            border-width: 0px;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-            border-color: rgb(150,150,150);
-            font: 14px "Microsoft JhengHei UI";
-            color: rgb(60,60,60);}
-            QPushButton:hover{background-color: rgb(195,225,225);}
-            QPushButton:pressed{background-color: rgb(195,215,215);
-            }''')
+            self.tabs_b[nam].setStyleSheet(ViewSettings.tab_button_design_taped)
             self.tabs_b[nam].setFixedWidth(80)
         self.tabs_box.setAlignment(Qt.AlignLeft)
         nam = 'but_' + str(0)
-        self.tabs_b[nam].setStyleSheet('''QPushButton{background-color: rgb(105,155,155);
-            border-style: outset;
-            border-width: 0px;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-            border-color: rgb(150,150,150);
-            font: 14px "Microsoft JhengHei UI";
-            color: rgb(60,60,60);}
-            QPushButton:hover{background-color: rgb(95,145,145);}
-            QPushButton:pressed{background-color: rgb(95,125,125);
-                    }''')
+        self.tabs_b[nam].setStyleSheet(ViewSettings.tab_button_design_no_taped)
         self.tabs_b[nam].setFixedWidth(100)
         self.init_style_sheet()
 
@@ -98,31 +81,11 @@ class RoutingWidget(QWidget, Route):
     def tab_clicked(self):
         sender = self.sender()
         nam = 'but_' + str(self.index)
-        self.tabs_b[nam].setStyleSheet('''QPushButton{background-color: rgb(205,235,235);
-            border-style: outset;
-            border-width: 0px;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-            border-color: rgb(150,150,150);
-            font: 14px "Microsoft JhengHei UI";
-            color: rgb(60,60,60);}
-            QPushButton:hover{background-color: rgb(195,225,225);}
-            QPushButton:pressed{background-color: rgb(195,215,215);
-            }''')
+        self.tabs_b[nam].setStyleSheet(ViewSettings.tab_button_design_taped)
         self.tabs_b[nam].setFixedWidth(80)
         self.index = int(sender.objectName())
         nam = 'but_' + str(self.index )
-        self.tabs_b[nam].setStyleSheet('''QPushButton{background-color: rgb(105,155,155);
-            border-style: outset;
-            border-width: 0px;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-            border-color: rgb(150,150,150);
-            font: 14px "Microsoft JhengHei UI";
-            color: rgb(60,60,60);}
-            QPushButton:hover{background-color: rgb(95,145,145);}
-            QPushButton:pressed{background-color: rgb(95,125,125);
-            }''')
+        self.tabs_b[nam].setStyleSheet(ViewSettings.tab_button_design_no_taped)
         self.tabs_b[nam].setFixedWidth(100)
         self.communicator.changeTab.emit()
 
@@ -143,7 +106,7 @@ class MainWindow(QWidget):
         self.route.communicator.changeTab.connect(self.changeTab)
         self.main_v_box = SelfVLayout(margin=Vector4().symmetric(10, 0))
         self.setLayout(self.main_v_box)
-        self.route.setFixedHeight(35)
+        self.route.setFixedHeight(45)
         self.main_widget = self.route.widgets[self.route.index]
         self.main_widget_copy = self.main_widget
         self.main_v_box.addWidget(self.route)

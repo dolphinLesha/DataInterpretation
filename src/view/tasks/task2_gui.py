@@ -15,6 +15,7 @@ from src.control.function import *
 from src.data.graphic import *
 from src.data.tasks.default_values import DefaultTask2
 from src.view.own_widgets import *
+from src.view.view_settings import ViewSettings
 
 
 class WidgetPlotDrawRandom(QWidget):
@@ -36,7 +37,7 @@ class WidgetPlotDrawRandom(QWidget):
         widget.setLayout(self.main_h_box)
         self.view_graphics = WidgetPlots()
         self.view_control = WidgetControl()
-        self.view_control.setFixedWidth(200)
+        self.view_control.setFixedWidth(ViewSettings.control_width)
         self.view_control.graph_build_b.clicked.connect(self.test)
         self.main_h_box.addWidget(self.view_control)
         self.main_h_box.addWidget(self.view_graphics)

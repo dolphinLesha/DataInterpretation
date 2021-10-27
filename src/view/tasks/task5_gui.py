@@ -6,7 +6,7 @@ from src.view.own_widgets import *
 from src.view.view_settings import ViewSettings
 
 
-class WidgetTask4(QWidget):
+class WidgetTask5(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -40,32 +40,23 @@ class WidgetTask4(QWidget):
 
         self.func = self.view_control.graph_and_settings.get_function()
         self.func.build(**self.view_control.graph_and_settings.get_settings())
-        Graphic(self.view_graphics.plots["plot1"]).build(func=self.func, prefab=GraphicPrefab.prefab_dark_blue())
+        Graphic(self.view_graphics.plots["plot1"]).build(func=self.func, prefab=GraphicPrefab.prefab_simple_thin())
 
-        bars = DefaultTask4.bars
-        if bars2 := self.view_control.parameter_bar_input.get_value_as_int():
-            bars = bars2
+        if C := self.view_control.shift_input.get_value_as_int():
+            self.shifted_func = self.func.shift(**{'C': C})
+            Graphic(self.view_graphics.plots["plot2"]).build(func=self.shifted_func, prefab=GraphicPrefab.prefab_simple_thin())
 
-        stats = AnalysisBuilder(self.func)
-        self.func2 = stats.probability_density(bars)
-        Graphic(self.view_graphics.plots["plot3"]).build_histogram(func=self.func2,
-                                                                   prefab=GraphicPrefab.prefab_dark_blue())
+        self.spiked_func =self.func.spikes(**self.view_control.spikes_settings.get_values())
+        Graphic(self.view_graphics.plots["plot3"]).build(func=self.spiked_func,
+                                                         prefab=GraphicPrefab.prefab_simple_thin())
 
-        self.func3 = stats.auto_correlation_f()
-        Graphic(self.view_graphics.plots["plot2"]).build(func=self.func3,
-                                                                   prefab=GraphicPrefab.prefab_dark_blue())
+        self.return_mo = self.shifted_func.return_mo()
+        Graphic(self.view_graphics.plots["plot4"]).build(func=self.return_mo,
+                                                         prefab=GraphicPrefab.prefab_simple_thin())
 
-        self.func4 = stats.auto_correlation_N_norm_f()
-        Graphic(self.view_graphics.plots["plot4"]).build(func=self.func4,
-                                                         prefab=GraphicPrefab.prefab_dark_blue())
-
-        self.func5 = self.view_control.graph_and_settings2.get_function()
-        self.func5.build(**self.view_control.graph_and_settings2.get_settings())
-        Graphic(self.view_graphics.plots["plot5"]).build(func=self.func5, prefab=GraphicPrefab.prefab_dark_blue())
-
-        self.func6 = stats.covariance_f(self.func5)
-        Graphic(self.view_graphics.plots["plot6"]).build(func=self.func6,
-                                                         prefab=GraphicPrefab.prefab_dark_blue())
+        self.anti_spikes = self.spiked_func.anti_spikes()
+        Graphic(self.view_graphics.plots["plot5"]).build(func=self.anti_spikes,
+                                                         prefab=GraphicPrefab.prefab_simple_thin())
 
 
 class WidgetControl(QWidget):
@@ -89,19 +80,20 @@ class WidgetControl(QWidget):
         self.graph_and_settings = SelfFuncSettingsWidget()
         self.box_group1.addWidget(self.graph_and_settings)
 
-        '''group box for bars'''
-        group2 = QGroupBox("Прочие настройки")
+        '''group box for values of shift'''
+        group2 = QGroupBox("Параметры смещения")
         self.box_group2 = SelfVLayout(spacing=5)
         group2.setLayout(self.box_group2)
-        self.parameter_bar_input = SelfTitledLineEdit("Кол-во разделений", str(DefaultTask4.bars))
-        self.box_group2.addWidget(self.parameter_bar_input)
+        self.shift_input = SelfTitledLineEdit('dy')
+        self.box_group2.addWidget(self.shift_input)
 
-        '''group box for values of 2 graph'''
-        group3 = QGroupBox("Второй график")
+        '''group box for values of spikes'''
+        group3 = QGroupBox("Параметры выбросов")
         self.box_group3 = SelfVLayout(spacing=5)
         group3.setLayout(self.box_group3)
-        self.graph_and_settings2 = SelfFuncSettingsWidget()
-        self.box_group3.addWidget(self.graph_and_settings2)
+        self.spikes_settings = SelfSpikesFuncSettings()
+        self.box_group3.addWidget(self.spikes_settings)
+
 
         self.box.addWidget(self.graph_build_b)
         self.box.addWidget(group1)
@@ -132,26 +124,25 @@ class WidgetValues(QWidget):
         self.hbox.addLayout(self.vbox3)
         self.plots = {}
         self.plot1 = self.build_plot_item(plot_name='plot1', plot_title='первый график')
+        self.plot2 = self.build_plot_item(plot_name='plot2', plot_title='График со смещением')
+        self.plot3 = self.build_plot_item(plot_name='plot3', plot_title='График с выбросами')
+        self.plot4 = self.build_plot_item(plot_name='plot4', plot_title='График с восстановлением смещения')
+        self.plot5 = self.build_plot_item(plot_name='plot5', plot_title='График с удалением выбросов')
+
         self.plot1.setFixedSize(450, 320)
-        self.plot2 = self.build_plot_item(plot_name='plot2', plot_title='Автокорреляция')
-        self.plot2.setFixedSize(450, 220)
-        self.plot3 = self.build_plot_item(plot_name='plot3', plot_title='Плотность вероятности')
-        self.plot3.setFixedSize(450, 220)
-        self.plot4 = self.build_plot_item(plot_name='plot4', plot_title='Автокорреляция по количеству элементов')
-        self.plot4.setFixedSize(450, 220)
         self.vbox1.addWidget(self.plot1)
-        self.vbox1.addWidget(self.plot3)
-        self.vbox1.addWidget(self.plot2)
         self.vbox1.addStretch()
 
-        self.plot5 = self.build_plot_item(plot_name='plot5', plot_title='второй график')
-        self.plot5.setFixedSize(450, 320)
-        self.vbox2.addWidget(self.plot5)
+        self.plot2.setFixedSize(450, 320)
+        self.vbox2.addWidget(self.plot2)
+        self.plot4.setFixedSize(450, 320)
+        self.vbox2.addWidget(self.plot4)
         self.vbox2.addStretch()
 
-        self.plot6 = self.build_plot_item(plot_name='plot6', plot_title='Ковариация')
-        self.plot6.setFixedSize(450, 320)
-        self.vbox3.addWidget(self.plot6)
+        self.plot3.setFixedSize(450, 320)
+        self.vbox3.addWidget(self.plot3)
+        self.plot5.setFixedSize(450, 320)
+        self.vbox3.addWidget(self.plot5)
         self.vbox3.addStretch()
 
         self.hbox.addStretch()
