@@ -1,17 +1,5 @@
-import datetime
-import sys
-
-from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import QSize
-from PyQt5.QtWidgets import (QPushButton,
-                             QLabel,
-                             QWidget,
-                             QVBoxLayout,
-                             QHBoxLayout,
-                             QTextEdit,
-                             QFrame, QSizePolicy)
 
-from src.control.function import *
 from src.data.graphic import *
 from src.view.own_widgets import *
 from src.view.view_settings import ViewSettings
@@ -50,19 +38,35 @@ class WidgetPlotDraw1(QWidget):
 
         func = self.view_control.graph_and_settings1.get_function()
         func.build(**self.view_control.graph_and_settings1.get_settings())
-        Graphic(self.view_graphics.plots["plot1"]).build(func=func, prefab=GraphicPrefab.prefab_simple())
+        Graphic(self.view_graphics.plots["plot1"]).build(func=func, prefab=GraphicPrefab.prefab_simple(),
+                                                         **self.view_control.graph_and_settings1.get_settings())
 
         func = self.view_control.graph_and_settings2.get_function()
         func.build(**self.view_control.graph_and_settings2.get_settings())
-        Graphic(self.view_graphics.plots["plot2"]).build(func=func, prefab=GraphicPrefab.prefab_simple())
+        Graphic(self.view_graphics.plots["plot2"]).build(func=func, prefab=GraphicPrefab.prefab_simple(),
+                                                         **self.view_control.graph_and_settings2.get_settings())
 
         func = self.view_control.graph_and_settings3.get_function()
         func.build(**self.view_control.graph_and_settings3.get_settings())
-        Graphic(self.view_graphics.plots["plot3"]).build(func=func, prefab=GraphicPrefab.prefab_simple())
+        Graphic(self.view_graphics.plots["plot3"]).build(func=func, prefab=GraphicPrefab.prefab_simple(),
+                                                         **self.view_control.graph_and_settings3.get_settings())
 
         func = self.view_control.graph_and_settings4.get_function()
         func.build(**self.view_control.graph_and_settings4.get_settings())
-        Graphic(self.view_graphics.plots["plot4"]).build(func=func, prefab=GraphicPrefab.prefab_simple())
+        Graphic(self.view_graphics.plots["plot4"]).build(func=func, prefab=GraphicPrefab.prefab_simple(),
+                                                         **self.view_control.graph_and_settings4.get_settings())
+
+        # rand100 = func.add_random_opti(amount=100, **self.view_control.graph_and_settings1.get_settings())
+        # Graphic(self.view_graphics.plots["plot2"]).build(func=rand100, prefab=GraphicPrefab.prefab_simple(),
+        #                                                  title='n=100', graph_limit=(-1, 1))
+        #
+        # rand1000 = rand100.add_random_opti(amount=900, **self.view_control.graph_and_settings1.get_settings())
+        # Graphic(self.view_graphics.plots["plot3"]).build(func=rand1000, prefab=GraphicPrefab.prefab_simple(),
+        #                                                  title='n=1000', graph_limit=(-1, 1))
+        #
+        # rand10000 = rand100.add_random_opti(amount=10000, **self.view_control.graph_and_settings1.get_settings())
+        # Graphic(self.view_graphics.plots["plot4"]).build(func=rand10000, prefab=GraphicPrefab.prefab_simple(),
+        #                                                  title='n=10000', graph_limit=(-1, 1))
 
 
 class WidgetControl(QWidget):
@@ -75,8 +79,8 @@ class WidgetControl(QWidget):
     def init_ui(self):
         self.box = SelfVLayout()
         self.setLayout(self.box)
+        self.area = SelfControlPanel()
         self.graph_build_b = SelfButton("построить графики")
-        self.box.addWidget(self.graph_build_b)
 
         '''group box for values of 1 graph'''
         group1 = QGroupBox("График 1")
@@ -84,7 +88,6 @@ class WidgetControl(QWidget):
         group1.setLayout(self.box_group1)
         self.graph_and_settings1 = SelfFuncSettingsWidget()
         self.box_group1.addWidget(self.graph_and_settings1)
-        self.box.addWidget(group1)
 
         '''group box for values of 1 graph'''
         group2 = QGroupBox("График 2")
@@ -92,7 +95,6 @@ class WidgetControl(QWidget):
         group2.setLayout(self.box_group2)
         self.graph_and_settings2 = SelfFuncSettingsWidget()
         self.box_group2.addWidget(self.graph_and_settings2)
-        self.box.addWidget(group2)
 
         '''group box for values of 1 graph'''
         group3 = QGroupBox("График 3")
@@ -100,7 +102,6 @@ class WidgetControl(QWidget):
         group3.setLayout(self.box_group3)
         self.graph_and_settings3 = SelfFuncSettingsWidget()
         self.box_group3.addWidget(self.graph_and_settings3)
-        self.box.addWidget(group3)
 
         '''group box for values of 1 graph'''
         group4 = QGroupBox("График 4")
@@ -108,11 +109,19 @@ class WidgetControl(QWidget):
         group4.setLayout(self.box_group4)
         self.graph_and_settings4 = SelfFuncSettingsWidget()
         self.box_group4.addWidget(self.graph_and_settings4)
-        self.box.addWidget(group4)
 
-
-
-        self.box.addStretch(1)
+        # self.box.addWidget(self.graph_build_b)
+        # self.box.addWidget(group1)
+        # self.box.addWidget(group2)
+        # self.box.addWidget(group3)
+        # self.box.addWidget(group4)
+        self.area.add_widget(self.graph_build_b)
+        self.area.add_widget(group1)
+        self.area.add_widget(group2)
+        self.area.add_widget(group3)
+        self.area.add_widget(group4)
+        self.box.addWidget(self.area)
+        # self.box.addStretch(1)
         self.init_style_sheet()
 
     def init_style_sheet(self):

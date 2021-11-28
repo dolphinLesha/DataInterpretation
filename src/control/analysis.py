@@ -326,3 +326,4 @@ class AnalysisBuilder(Analysis):
         func.data = data
         func.data_x = data_x
         return func
+

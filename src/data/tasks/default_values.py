@@ -68,3 +68,24 @@ class DefaultTask6:
         self.n = 10
         self.val = 1000
         self.d = 100
+
+
+class DefaultRythmFunction:
+    n: int = 200
+    a1: float = 7
+    f1: int = 4
+    dt: float = 0.005
+
+    def __init__(self):
+        self.n = 200
+        self.a1 = 7
+        self.f1 = 4
+        self.dt = 0.005
+
+
+class DefaultImpulseReactionFunction:
+    m: int = 32
+    fc: float = 100
+    fc1: float = 100
+    fc2: float = 100
+    dt: float = 0.001

@@ -17,6 +17,10 @@ from src.view.own_widgets import *
 from src.view.tasks.task3_gui import WidgetStatistics
 from src.view.tasks.task4_gui import WidgetTask4
 from src.view.tasks.task5_gui import WidgetTask5
+from src.view.tasks.task6_gui import WidgetTask6
+from src.view.tasks.task7_gui import WidgetTask7
+from src.view.tasks.task8_gui import WidgetTask8
+from src.view.tasks.task9_gui import WidgetTask9
 from src.view.view_settings import ViewSettings
 from tasks.task1_gui import (
     WidgetPlotDraw1,
@@ -44,6 +48,10 @@ class Route:
         self.widgets.append(WidgetStatistics())
         self.widgets.append(WidgetTask4())
         self.widgets.append(WidgetTask5())
+        self.widgets.append(WidgetTask6())
+        self.widgets.append(WidgetTask7())
+        self.widgets.append(WidgetTask8())
+        self.widgets.append(WidgetTask9())
         self.index = 0
 
 
@@ -75,7 +83,6 @@ class RoutingWidget(QWidget, Route):
         self.init_style_sheet()
 
     def init_style_sheet(self):
-        print("tuttt")
         self.setStyleSheet('''QWidget{background-color: rgb(0,0,0);}''')
 
     def tab_clicked(self):
@@ -117,7 +124,6 @@ class MainWindow(QWidget):
         self.setStyleSheet('''QWidget#plot{background-color: rgba(0,255,255,255);}''')
 
     def changeTab(self):
-        print('tut')
         # self.main_v_box.addWidget(self.route)
         self.main_v_box.removeWidget(self.main_widget)
         self.main_widget.setParent(None)
@@ -150,3 +156,17 @@ application = MainWindow()
 application.show()
 
 app.exec()
+
+# class A:
+#     def __init__(self):
+#         self.__setattr__('atr1', 1)
+#         self.__setattr__('atr2', 2)
+#         for k, v in self.__dict__.items():
+#             print(k, v)
+#         # print(self.__getattribute__('atr1'))
+#
+#
+# # a = A()
+# a = tuple([2, 4, 5])
+# print(a[0])
+
