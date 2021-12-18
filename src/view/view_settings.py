@@ -25,3 +25,26 @@ class ViewSettings:
             border-bottom-width: 4px;}
             QPushButton:pressed{background-color: rgb(190,190,190);
             }'''
+
+    # background_color = (245, 245, 245)
+    # foreground_color = (30, 30, 30)
+    # foreground_color2 = (50, 50, 50)
+
+    background_color = (30, 30, 30)
+    foreground_color = (255, 255, 255)
+    foreground_color2 = (205, 205, 205)
+
+    self_button2 = '''QPushButton{background-color: rgb(245,135,45);
+        height: 35px;
+        border-style: outset;
+        border-width: 0px;
+        border-radius: 4px;
+        border-color: rgb(90,90,90);
+        font: bold 17px "Microsoft JhengHei UI";
+        color: rgb(%d,%d,%d);}
+        QPushButton:hover{background-color: rgb(245,105,35);
+        }
+        QPushButton:pressed{background-color: rgb(245,65,25);
+        }
+        QPushButton:disabled{background-color: rgb(100,100,100);
+        }''' % foreground_color2

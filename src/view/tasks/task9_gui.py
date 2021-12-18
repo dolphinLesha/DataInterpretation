@@ -61,7 +61,7 @@ class WidgetTask9(QWidget):
         if hasattr(self, 'conv1'):
             print('tut1')
             self.fourier3 = self.conv1.fourier_transform()
-        self.fourier.multiply(len(self.func.data))
+        # self.fourier.multiply(len(self.func.data))
         Graphic(self.view_graphics.plots["plot2"]).build(func=self.fourier,
                                                          prefab=GraphicPrefab.prefab_simple_thin())
 
@@ -82,7 +82,7 @@ class WidgetTask9(QWidget):
 
         # self.func2 = self.func.spikes(**{'n': 1})
 
-        self.conv1 = self.func.convolution2(self.func2)
+        self.conv1 = self.func.convolution(self.func2)
         Graphic(self.view_graphics.plots["plot7"]).build(func=self.conv1, prefab=GraphicPrefab.prefab_simple_thin())
 
 

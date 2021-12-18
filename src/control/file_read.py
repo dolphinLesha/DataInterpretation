@@ -7,6 +7,7 @@ from src.control.function import Function, HarmonicFunction
 
 
 class FileReader:
+    """Класс для чтения функции из файла"""
     def __init__(self, path: str):
         self.path = path
 

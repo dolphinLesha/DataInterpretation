@@ -46,7 +46,7 @@ class WidgetTask8(QWidget):
         Graphic(self.view_graphics.plots["plot1"]).build(func=self.func, prefab=GraphicPrefab.prefab_simple_thin())
         Graphic(self.view_graphics.plots["plot2"]).build(func=self.func2,
                                                          prefab=GraphicPrefab.prefab_simple_thin())
-        self.spiked_func = self.func2.spikes(**self.view_control.spikes_settings.get_values())
+        self.spiked_func = self.func2.spikes(**{'sign_minus': True}, **self.view_control.spikes_settings.get_values())
         Graphic(self.view_graphics.plots["plot3"]).build(func=self.spiked_func,
                                                          prefab=GraphicPrefab.prefab_simple_thin())
 
@@ -55,7 +55,7 @@ class WidgetTask8(QWidget):
 
         # self.func2 = self.func.spikes(**{'n': 1})
 
-        self.convolution = self.func.convolution2(self.spiked_func)
+        self.convolution = self.func.convolution(self.spiked_func)
         Graphic(self.view_graphics.plots["plot4"]).build(func=self.convolution, prefab=GraphicPrefab.prefab_simple_thin())
 
 

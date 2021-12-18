@@ -5,6 +5,11 @@ import numpy as np
 
 
 class Analysis:
+    """
+    Класс для анализа статистик
+
+    """
+
     N: int = 1
     min: float
     max: float

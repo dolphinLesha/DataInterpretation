@@ -1,14 +1,22 @@
 from copy import deepcopy
-from typing import Any
+from typing import Any, Union
 
+import pyperclip as pc
+import pyqtgraph as pg
+from PyQt5 import QtGui
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QVBoxLayout, QWidget, QHBoxLayout, QFrame, QGroupBox, QLineEdit, QPushButton, QComboBox, \
     QLabel, QScrollArea, QFileDialog
 
+from src.control.audio.audio_function import AudioFunction
+from src.control.audio.audio_module import AudioModule
 from src.control.file_read import FileReader
 from src.control.function import Function
-from src.data.graphic import FunctionVariants
+from src.data.graphic import Variants
 from src.data.klasses import Vector4
 from src.data.tasks.default_values import *
+from src.view.view_settings import ViewSettings
 
 
 class SelfVLayout(QVBoxLayout):
@@ -36,6 +44,31 @@ class SelfFrame(QFrame):
     def __init__(self, parent: QWidget = None):
         super().__init__(parent)
         self.setContentsMargins(0, 0, 0, 0)
+
+
+class SelfPlot(QWidget):
+
+    def __init__(self, title: str, parent: QWidget = None):
+        super().__init__(parent)
+        self.setContentsMargins(0, 0, 0, 0)
+
+        vbox = SelfVLayout()
+        self.setLayout(vbox)
+        self.plot = pg.PlotWidget()
+        self.plot.setBackground(QColor(*ViewSettings.background_color))
+        # self.plots[kwargs['plot_name']] = pg.PlotWidget()
+        # self.plots[kwargs['plot_name']].setBackground('w')
+        # self.plots[kwargs['plot_name']].setObjectName(kwargs['plot_name'])
+        title = QLabel(title)
+        title.setFixedHeight(13)
+        title.setStyleSheet('''QLabel{
+                font: 12px "Microsoft JhengHei UI";
+                color: rgba(%d, %d, %d, 230);
+                text-align: center;
+                }''' % ViewSettings.foreground_color)
+        title.setAlignment(Qt.AlignCenter)
+        vbox.addWidget(self.plot, stretch=10)
+        vbox.addWidget(title, stretch=1)
 
 
 class SelfTitledLineEdit(QGroupBox):
@@ -75,6 +108,16 @@ class SelfTitledLineEdit(QGroupBox):
         }
         QLineEdit:focus{background-color: rgb(255,255,255);
         }''')
+        self.setStyleSheet('''QGroupBox{
+                border: 0px solid;
+                margin-top: 5ex;}
+                QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left; /* position at the top center */
+                padding: -15ex 5px;
+                color: rgb(%d,%d,%d);
+                }
+                    ''' % ViewSettings.foreground_color2)
 
     def get_value(self):
         if self.lineEdit.text().isnumeric():
@@ -87,9 +130,23 @@ class SelfTitledLineEdit(QGroupBox):
         return None
 
     def get_value_as_float(self):
-        if self.lineEdit.text().replace('-', '').replace('.', '').replace(',', '').isnumeric():
-            return float(self.lineEdit.text().replace(',', '.'))
-        return None
+        # if self.lineEdit.text().replace('-', '').replace('.', '').replace(',', '').isnumeric():
+        #     return float(self.lineEdit.text().replace(',', '.'))
+        try:
+            return float(self.lineEdit.text())
+        except Exception:
+
+            return None
+
+
+class SelfLabel(QLabel):
+    clicked = pyqtSignal()
+
+    def __init__(self, text: str = ""):
+        super(SelfLabel, self).__init__(text)
+
+    def mousePressEvent(self, ev: QtGui.QMouseEvent) -> None:
+        self.clicked.emit()
 
 
 class SelfTitledLabel(QGroupBox):
@@ -99,7 +156,8 @@ class SelfTitledLabel(QGroupBox):
         self.setTitle(title)
         lay = SelfVLayout()
         self.setLayout(lay)
-        self.label = QLabel(text)
+        self.label = SelfLabel(text)
+        self.label.clicked.connect(self.copy_to_clipboard)
         self.setFixedHeight(45)
         if width:
             self.setFixedWidth(width)
@@ -110,27 +168,32 @@ class SelfTitledLabel(QGroupBox):
 
     def init_style_sheet(self):
         self.setStyleSheet('''QGroupBox{
-        border: 1px solid rgb(220,220,240);
-        border-radius: 7;
-        }
-        QGroupBox::title{
-        subcontrol-position: top center;
-        padding: 0 -9px;
-        }''')
+                border: 0px solid;
+                margin-top: 5ex;}
+                QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top center; /* position at the top center */
+                padding: 3px;
+                color: rgb(%d,%d,%d);
+                }
+                    ''' % ViewSettings.foreground_color2)
         # self.setContentsMargins(4, 8, 4, 0)
         self.label.setStyleSheet('''QLabel{
         height: 30px;
         font: 14px "Microsoft JhengHei UI";
-        color: rgb(0,0,0);
+        color: rgb(%d,%d,%d);
         }
         QLabel:hover{color: rgb(40,40,40);
          font: 18px;
          height: 60px;
         }
-        ''')
+        ''' % ViewSettings.foreground_color2)
 
     def set_text(self, text: str):
         self.label.setText(text)
+
+    def copy_to_clipboard(self):
+        pc.copy(self.label.text())
 
 
 class SelfButton(QPushButton):
@@ -155,7 +218,20 @@ class SelfButton(QPushButton):
         color: rgb(255,255,255);}''')
 
 
+class SelfButton2(QPushButton):
+    def __init__(self, text: str):
+        super().__init__(text)
+        self.init_style_sheet()
+
+    def init_style_sheet(self):
+        self.setStyleSheet(ViewSettings.self_button2)
+
+
 class SelfControlPanel(QWidget):
+    """
+    Боковая панель настроек вкладки приложения
+    """
+
     def __init__(self):
         super().__init__()
         self.setObjectName('control_panel')
@@ -188,10 +264,14 @@ class SelfControlPanel(QWidget):
 
 
 class SelfComboBoxFunctions(QComboBox):
+    """
+    Вспомогательный класс виджета с выбором функций для построения
+    """
+
     def __init__(self):
         super().__init__()
         self.setFixedHeight(30)
-        for key, val in FunctionVariants().variants.items():
+        for key, val in Variants.func_variants.items():
             self.addItem(key)
         self.init_style_sheet()
 
@@ -209,11 +289,16 @@ class SelfComboBoxFunctions(QComboBox):
 
 
 class SelfComboBoxLoadVariants(QComboBox):
+    """
+    Вспомогательный класс для выбора загрузки функции из приложения, файла с готовой функцией или звукового файла
+    """
+
     def __init__(self):
         super().__init__()
         self.setFixedHeight(30)
         self.addItem('Встроенные функции', 'build-in function')
         self.addItem('Загрузить из файла', 'load from file')
+        self.addItem('Загрузить из wav', 'load from wav')
         self.init_style_sheet()
 
     def init_style_sheet(self):
@@ -230,12 +315,22 @@ class SelfComboBoxLoadVariants(QComboBox):
 
 
 class SelfFuncGeneralSettings(QGroupBox):
+    """
+    Класс для генерации настроек функции
+
+    У каждой функции есть свои параметры, к примеру длина, параметр частоты, амплитуды, максимума и тд
+    Этот класс генерирует виджет, который бы позволял настраивать любую функцию с любыми параметрами, используя их настройки
+
+    Он и позволяет подключить построение любой встроенной функции в приложении, чтобы не выбирать их вручную из кода
+    """
+
     def __init__(self, **kwargs):
         super(SelfFuncGeneralSettings, self).__init__()
         title = kwargs.get('widget_title')
-
+        self.setObjectName('settings')
         if title is None:
-            raise Exception('Не задано поле widget_title')
+            title = ''
+            # raise Exception('Не задано поле widget_title')
 
         self.graphic_title = kwargs.get('graphic_title')
         atr = kwargs.get('atr')
@@ -266,7 +361,16 @@ class SelfFuncGeneralSettings(QGroupBox):
         self.init_style_sheet()
 
     def init_style_sheet(self):
-        pass
+        self.setStyleSheet('''QGroupBox#settings{
+        border: 0px solid;
+        margin-top: 3ex;}
+        QGroupBox#settings::title {
+        subcontrol-origin: margin;
+        subcontrol-position: top center; /* position at the top center */
+        padding: 0 3px;
+        color: rgb(%d,%d,%d);
+        }
+            ''' % ViewSettings.foreground_color2)
 
     def _set_values(self):
         self._result_dict = {'title': self.graphic_title}
@@ -293,6 +397,9 @@ class SelfFuncGeneralSettings(QGroupBox):
 
 
 class FuncSettings:
+    """
+    Класс, в котором перечислены все необходимые настройки, параметры функции для виджета настройки функции
+    """
     def __init__(self):
         self.lin_settings = {
             'widget_title': 'Настройки',
@@ -607,7 +714,7 @@ class SelfRandomAddFuncSettings(SelfFuncGeneralSettings):
         max_p = self._result_dict['max_p']
         self._result_dict['graph_limit'] = (min_p, max_p)
         self._result_dict['title'] = 'n= ' + \
-            str(self._result_dict['amount'])
+                                     str(self._result_dict['amount'])
 
 
 class SelfRandomOwnFuncSettings(SelfFuncGeneralSettings):
@@ -632,10 +739,13 @@ class SelfHarmonicRandAddFuncSettings(SelfFuncGeneralSettings):
         max_p = self._result_dict['max_p']
         self._result_dict['graph_limit'] = (-a1 + min_p, a1 + max_p)
         self._result_dict['title'] = 'n= ' + \
-            str(self._result_dict['amount'])
+                                     str(self._result_dict['amount'])
 
 
 class SelfFuncSettings:
+    """
+    Все настройки, чтобы к ним можно обращаться как к массиву
+    """
     def __init__(self):
         self.settings = []
         self.settings.append(SelfFuncGeneralSettings(**FuncSettings().lin_settings))
@@ -656,6 +766,7 @@ class SelfFuncSettings:
 
 
 class SelfFuncSettingsWidget(QWidget):
+    """Виджет, который позволяет выбирать функцию, и возвращает ее или ее настройки"""
     def __init__(self):
         super(SelfFuncSettingsWidget, self).__init__()
         self.lay = SelfVLayout()
@@ -677,10 +788,16 @@ class SelfFuncSettingsWidget(QWidget):
         return self.graph_settings.get_values()
 
     def get_function(self) -> Function:
-        return list(FunctionVariants().variants.values())[self.combo_box.currentIndex()]
+        return list(Variants.func_variants.values())[self.combo_box.currentIndex()]
 
 
 class SelfFunctionCreateVariant(QWidget):
+    """
+    Виджет, который позволяет выбрать, откуда брать функцию: из готовых, из файла или из звукового файла
+    Возвращает построенную функцию, ее настройки, если бралась из приложения
+
+    Если загружается звуковой файл, то возвращается единственный или усредненный канал
+    """
     def __init__(self):
         super(SelfFunctionCreateVariant, self).__init__()
         self.lay = SelfVLayout()
@@ -699,6 +816,8 @@ class SelfFunctionCreateVariant(QWidget):
             self.variant_settings = SelfFuncSettingsWidget()
         elif index == 1:
             self.variant_settings = SelfFileOpenPicker('Загрузить данные')
+        elif index == 2:
+            self.variant_settings = SelfFileLoad()
         self.lay.addWidget(self.variant_settings)
         # self.lay.setStretch(0, 1)
 
@@ -714,9 +833,24 @@ class SelfFunctionCreateVariant(QWidget):
         elif isinstance(self.variant_settings, SelfFileOpenPicker):
             func = self.variant_settings.get_function_data()
             return func
+        elif isinstance(self.variant_settings, SelfFileLoad):
+            path = self.variant_settings.path
+
+            wav_file = AudioModule().read(path)
+            self.audio_func = AudioFunction()
+            self.audio_func.build_from_wav_file(wav_file=wav_file)
+
+            if self.audio_func.channels == 2:
+                self.func_l = self.audio_func.common_channel
+                self.func_r = self.audio_func.right_channel
+                self.func_a = self.func_l.average(self.func_r)
+                return self.func_a
+            else:
+                self.func_a = self.audio_func.common_channel
+                return self.func_a
         else:
             raise Exception('none')
-        # return list(FunctionVariants().variants.values())[self.combo_box.currentIndex()]
+        # return list(Variants().func_variants.values())[self.combo_box.currentIndex()]
 
 
 class SelfSpikesFuncSettings(QGroupBox):
@@ -752,9 +886,37 @@ class SelfSpikesFuncSettings(QGroupBox):
         return {'n': n, 'val': val, 'd': d}
 
 
+class SelfGroupBox(QGroupBox):
+    def __init__(self, title: str):
+        super(SelfGroupBox, self).__init__()
+        self.setTitle(title)
+
+        self.init_style_sheet()
+
+    def init_style_sheet(self):
+        self.setStyleSheet('''QGroupBox{
+                border: 0px solid;
+                margin-top: 5ex;
+                background-color: rgb(%d,%d,%d);}
+                QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top center; /* position at the top center */
+                padding: 3px;
+                color: rgb(%d,%d,%d);
+                }
+        ''' % (ViewSettings.background_color[0], ViewSettings.background_color[1],
+               ViewSettings.background_color[2], ViewSettings.foreground_color2[0],
+               ViewSettings.foreground_color2[1], ViewSettings.foreground_color2[2]))
+
+
 class SelfFileOpenPicker(QPushButton):
-    def __init__(self, name: str = ''):
+    """
+    Кнопка загрузки функции из файла
+    """
+    def __init__(self, name: str = '', callback=None):
         super(SelfFileOpenPicker, self).__init__(name)
+        if callback is not None:
+            self.callback = callback
         self.clicked.connect(self.open_file_name_dialog)
 
     def open_file_name_dialog(self):
@@ -765,7 +927,9 @@ class SelfFileOpenPicker(QPushButton):
             "All Files (*);;Binary files (*.dat *.bin)", options=options)
         if file_name:
             self.path = file_name
+            print('callback')
             print(file_name)
+            self.callback(file_name)
 
     def get_path(self):
         if hasattr(self, 'path'):
@@ -777,3 +941,134 @@ class SelfFileOpenPicker(QPushButton):
         func = reader.load_data()
 
         return func
+
+
+class SelfFileSavePicker(QPushButton):
+    """
+    Кнопка для сохранения чего либо (возвращает путь с именем файла, который выбрал пользователь)
+    """
+    def __init__(self, name: str = '', callback=None):
+        super(SelfFileSavePicker, self).__init__(name)
+        if callback is not None:
+            self.callback = callback
+        self.clicked.connect(self.save_file_name_dialog)
+
+        self.init_style_sheet()
+
+    def save_file_name_dialog(self):
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
+                                                   "All Files (*);;Wav files (*.wav)", options=options)
+        if file_name:
+            self.path = file_name
+            # self.callback()
+            print(file_name)
+
+    def get_path(self):
+        if hasattr(self, 'path'):
+            return self.path
+        return None
+
+    def init_style_sheet(self):
+        self.setStyleSheet(ViewSettings.self_button2)
+
+
+class SelfFileLoad(QGroupBox):
+    """
+    Для получения пути файла, который пользователь выбрал для загрузки
+    """
+
+    def __init__(self):
+        super(SelfFileLoad, self).__init__()
+        self.setTitle("Загрузка файла")
+        lay = SelfVLayout()
+        self.setLayout(lay)
+
+        def set_file(path: str):
+            print('set_file')
+            print(path)
+            self.path = path
+            print(self.path)
+            label_name = self.path.split('/')[-1]
+            self.file_label.set_text(label_name)
+
+        self.file_picker = SelfFileOpenPicker('загрузить', set_file)
+        self.file_label = SelfTitledLabel('имя', '')
+
+        lay.addWidget(self.file_picker)
+        lay.addWidget(self.file_label)
+
+        self.init_style_sheet()
+
+    def init_style_sheet(self):
+        self.setStyleSheet('''QGroupBox{
+                border: 0px solid;
+                margin-top: 5ex;}
+                QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top center; /* position at the top center */
+                padding: 3px;
+                color: rgb(%d,%d,%d);
+                }
+                    ''' % ViewSettings.foreground_color2)
+
+
+class SelfComboBoxProcessing(QComboBox):
+    def __init__(self):
+        super().__init__()
+        self.setFixedHeight(30)
+        for key, val in Variants.proc_variants.items():
+            self.addItem(val)
+        self.init_style_sheet()
+
+    def init_style_sheet(self):
+        self.setStyleSheet('''QComboBox {
+            font: 17px "Microsoft JhengHei UI";
+
+        }
+        QComboBox QAbstractItemView {
+            selection-background-color: rgba(150,150,150,40);
+            selection-border: 0px solid gray;
+            selection-color: rgb(0,0,0);
+        }
+        ''')
+
+
+class SelfFuncProcessingWidget(QWidget):
+    """
+    Виджет, который позволяет выбирать операции для преобразования
+    """
+    def __init__(self):
+        super(SelfFuncProcessingWidget, self).__init__()
+        self.lay = SelfVLayout()
+        self.setLayout(self.lay)
+
+        self.combo_box = SelfComboBoxProcessing()
+        # self.combo_box.setFixedWidth(200)
+        self.combo_box.currentIndexChanged.connect(self.proc_changed)
+        self.combo_box.setCurrentIndex(1)
+        self.lay.addWidget(self.combo_box)
+        self.index = 1
+        self.variant_settings = SelfFunctionCreateVariant()
+        self.lay.addWidget(self.variant_settings)
+
+    def proc_changed(self, index: int):
+        self.index = index
+        self.variant_settings.setParent(None)
+        if list(Variants.proc_variants.keys())[index] in ('add_func', 'multi', 'convolve'):
+            self.variant_settings = SelfFunctionCreateVariant()
+        elif list(Variants.proc_variants.keys())[index] == 'rmv_white_noise':
+            self.variant_settings = SelfTitledLineEdit('p', '0')
+        self.lay.addWidget(self.variant_settings)
+
+    def get_settings(self) -> Union[dict[str, Any], float, int]:
+        if isinstance(self.variant_settings, SelfTitledLineEdit):
+            return self.variant_settings.get_value_as_float()
+        return self.variant_settings.get_values()
+
+    def get_function(self) -> Function:
+        if isinstance(self.variant_settings, SelfFunctionCreateVariant):
+            return self.variant_settings.get_function()
+
+    def get_proc(self):
+        return list(Variants.proc_variants.keys())[self.combo_box.currentIndex()]

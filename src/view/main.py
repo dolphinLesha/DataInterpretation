@@ -2,18 +2,11 @@ import datetime
 import sys
 
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import QSize, QObject, pyqtSignal, Qt
-from PyQt5.QtWidgets import (QPushButton,
-                             QLabel,
-                             QWidget,
-                             QVBoxLayout,
-                             QHBoxLayout,
-                             QTextEdit,
-                             QFrame, QSizePolicy)
+from PyQt5.QtCore import QObject, pyqtSignal
 
-from src.control.function import *
-from src.data.graphic import *
 from src.view.own_widgets import *
+from src.view.tasks.project_gui import WidgetProject
+from src.view.tasks.task10_gui import WidgetTask10
 from src.view.tasks.task3_gui import WidgetStatistics
 from src.view.tasks.task4_gui import WidgetTask4
 from src.view.tasks.task5_gui import WidgetTask5
@@ -31,16 +24,20 @@ from tasks.task2_gui import (
 
 
 class Communicate(QObject):
-
     changeTab = pyqtSignal()
 
 
 class Route:
-    # widgets: list[QWidget]
+    """
+    Класс для маршрутизации окон в приложении
+    """
     index: int
     communicator: Communicate
 
     def __init__(self):
+        """
+        Инициализируем коммуникатор и все вкладки приложения
+        """
         self.widgets = []
         self.communicator = Communicate()
         self.widgets.append(WidgetPlotDraw1())
@@ -52,23 +49,32 @@ class Route:
         self.widgets.append(WidgetTask7())
         self.widgets.append(WidgetTask8())
         self.widgets.append(WidgetTask9())
+        self.widgets.append(WidgetTask10())
+        self.widgets.append(WidgetProject())
         self.index = 0
 
 
 class RoutingWidget(QWidget, Route):
+    """
+    Класс управления маршрутизацией
+
+    Здесь генерируются кнопки верхней панели приложения, которые отвечают за вкладки
+    """
     def __init__(self):
         super().__init__()
         box = SelfVLayout()
         self.setLayout(box)
         tabs = QWidget()
-        tabs.setFixedWidth(800)
-        self.tabs_box = SelfHLayout(spacing=7)
+        tabs.setFixedWidth(1200)
+        self.tabs_box = SelfHLayout(spacing=2)
         tabs.setLayout(self.tabs_box)
         box.addWidget(tabs)
         self.tabs_b = {}
         for i in range(self.widgets.__len__()):
             nam = 'but_' + str(i)
-            self.tabs_b[nam] = QPushButton(str(i+1) + " Задание")
+            self.tabs_b[nam] = QPushButton(str(i + 1) + " Задание")
+            if i == 10:
+                self.tabs_b[nam] = QPushButton('проект')
             self.tabs_b[nam].setObjectName(str(i))
             self.tabs_b[nam].clicked.connect(self.tab_clicked)
             self.tabs_b[nam].setFixedHeight(30)
@@ -91,18 +97,22 @@ class RoutingWidget(QWidget, Route):
         self.tabs_b[nam].setStyleSheet(ViewSettings.tab_button_design_taped)
         self.tabs_b[nam].setFixedWidth(80)
         self.index = int(sender.objectName())
-        nam = 'but_' + str(self.index )
+        nam = 'but_' + str(self.index)
         self.tabs_b[nam].setStyleSheet(ViewSettings.tab_button_design_no_taped)
         self.tabs_b[nam].setFixedWidth(100)
         self.communicator.changeTab.emit()
 
 
 class MainWindow(QWidget):
+    """
+    Главное окно, корень дерева виджетов
+    """
 
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle(str(datetime.datetime.now()))
+        self.setObjectName('mainn')
         # self.setFixedWidth(1280)
         # self.setFixedHeight(900)
         self.route = RoutingWidget()
@@ -110,7 +120,7 @@ class MainWindow(QWidget):
         self.init_style_sheet()
 
     def init_ui(self):
-        self.route.communicator.changeTab.connect(self.changeTab)
+        self.route.communicator.changeTab.connect(self.change_tab)
         self.main_v_box = SelfVLayout(margin=Vector4().symmetric(10, 0))
         self.setLayout(self.main_v_box)
         self.route.setFixedHeight(45)
@@ -121,32 +131,17 @@ class MainWindow(QWidget):
 
     def init_style_sheet(self):
         self.route.setStyleSheet('''border-bottom: 1px solid rgba(0,0,0,50);''')
-        self.setStyleSheet('''QWidget#plot{background-color: rgba(0,255,255,255);}''')
+        self.setStyleSheet('''QWidget#plot{background-color: rgba(0,255,255,255);}
+        QWidget#mainn{background-color: rgb(%d,%d,%d);}''' % (
+        ViewSettings.background_color[0], ViewSettings.background_color[1], ViewSettings.background_color[2]))
 
-    def changeTab(self):
+    def change_tab(self):
         # self.main_v_box.addWidget(self.route)
         self.main_v_box.removeWidget(self.main_widget)
         self.main_widget.setParent(None)
         self.main_widget.destroy()
         self.main_widget = self.route.widgets[self.route.index]
         self.main_v_box.addWidget(self.main_widget)
-
-
-# class MainWindow2(QWidget):
-#     def __init__(self):
-#         super(MainWindow2, self).__init__()
-#         self.lay = SelfVLayout()
-#         self.setLayout(self.lay)
-#         self.wid1 = QTextEdit("as")
-#         self.wid2 = QPushButton("Press")
-#         self.lay.addWidget(self.wid1)
-#         self.lay.addWidget(self.wid2)
-#         self.wid2.clicked.connect(self.switch)
-#
-#     def switch(self):
-#         self.lay.removeWidget(self.wid2)
-#         self.wid2.setParent(None)
-#         self.wid2.destroy()
 
 
 app = QtCore.QCoreApplication.instance()
@@ -156,17 +151,3 @@ application = MainWindow()
 application.show()
 
 app.exec()
-
-# class A:
-#     def __init__(self):
-#         self.__setattr__('atr1', 1)
-#         self.__setattr__('atr2', 2)
-#         for k, v in self.__dict__.items():
-#             print(k, v)
-#         # print(self.__getattribute__('atr1'))
-#
-#
-# # a = A()
-# a = tuple([2, 4, 5])
-# print(a[0])
-

@@ -52,6 +52,9 @@ class WidgetTask7(QWidget):
 
         self.fourier_func = self.func.fourier_transform()
         Graphic(self.view_graphics.plots["plot2"]).build(func=self.fourier_func, prefab=GraphicPrefab.prefab_simple_thin())
+        # self.inv_fourier_func = self.func.inverse_fourier_transform()
+        # Graphic(self.view_graphics.plots["plot3"]).build(func=self.inv_fourier_func,
+        #                                                  prefab=GraphicPrefab.prefab_simple_thin())
 
     def build_fourier_window(self):
         sender = self.sender()

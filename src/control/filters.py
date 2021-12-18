@@ -1,6 +1,8 @@
 import numpy as np
 
+
 class Filter:
+    """Цифровые фильтры частот"""
 
     @staticmethod
     def lpf(fc, dt, m) -> list:
